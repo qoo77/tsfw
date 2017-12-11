@@ -1,0 +1,19 @@
+Hi priority
+交易策略買進時機, 開盤?關盤?高點?低點?
+
+
+0. statisticalData (TA lib)
+1. how to judge chkCanTrade() from df
+
+
+
+
+Low priority
+2. how to quantify performance in Portfolios()
+2. rebuild AlgorithmTemplate.py after GoldenCross.py finish
+3. add logging system
+4. training architecture
+
+
+note
+1. bearishBuy and bearishSell is cotroll by algorithm.py
