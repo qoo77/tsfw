@@ -1,8 +1,9 @@
 import pandas as pd
+import logging
+logger = logging.getLogger(__name__)
 
 class Algorithm():
 	def __init__(self, tsfw):
-		print("Algorithm1 create")
 		self.portfolios = tsfw.portfolios
 		self.tsfw = tsfw
 		self.bf = tsfw.baseFunction
@@ -81,7 +82,9 @@ class Algorithm():
 	def test_dateSummary(self, date):
 		pass
 
-	def test_afterwork_stock(self, stockNum):
+	def test_afterwork_stock(self, stockNum, date):
+		price = self.tsfw.stockData[stockNum].getClosePrice(date)
+		self.portfolios.checkout(stockNum, date, price)
 		pass
 
 	def test_afterwork(self):
@@ -89,4 +92,4 @@ class Algorithm():
 
 
 	def train(self):
-		print("train")  
+		pass

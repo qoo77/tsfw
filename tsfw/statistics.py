@@ -1,6 +1,7 @@
 import pandas as pd
 import talib
-#import os
+import logging
+logger = logging.getLogger(__name__)
 
 class Statistics():
 
@@ -15,7 +16,6 @@ class Statistics():
 
         if stockNum not in self.data:
             self.data[stockNum] = {}
-            return False
 
         if TAName not in self.data[stockNum]:
             return False

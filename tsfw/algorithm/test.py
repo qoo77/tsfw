@@ -1,6 +1,9 @@
 import pandas as pd
+import logging
+logger = logging.getLogger(__name__)
 
 class Algorithm():
+	#for plot debug
 	def __init__(self, tsfw):
 		print("Algorithm1 create")
 		self.portfolios = tsfw.portfolios

@@ -1,18 +1,15 @@
 import plotly as py
 import plotly.graph_objs as go
 from plotly import tools
-
 import os
 import pandas as pd
-
 from datetime import datetime
-
-import pprint
+import logging
+logger = logging.getLogger(__name__)
 
 class Plot():
 
     def __init__(self, stockData, recorder, portfolios):
-        print("plot")
         self.stockData = stockData
         self.recorder = recorder
         self.portfolios = portfolios
@@ -22,12 +19,12 @@ class Plot():
 
     def __plot_html(self, fig, filePath, stockNum):
 
+        logger.debug("Save File:" + filePath + "/dashboard.html")
         #py.offline.plot(fig, filename = (filePath + "/dashboard.html"), auto_open=False)
         py.offline.plot(fig, filename = (filePath + "/dashboard.html"))
         pass
 
     def __genOhlcData(self, dataframe, startDate=None, endDate=None):
-
         df = dataframe.loc[startDate:endDate]
 
         trace = go.Ohlc(x=df.index,
@@ -103,7 +100,6 @@ class Plot():
         return trace
 
     def addPlot2Queue(self, stockNum, dataframe, colName, colNum=1, rowNum=None, lineName=None, color='#17BECF', startDate=None, endDate=None):
-
         if rowNum==None:
             rowNum = self.rowNum
 
@@ -161,6 +157,9 @@ class Plot():
             self.__plot_dashboard(filePath, stockNum)
 
     def __plot_dashboard(self, filePath, stockNum):
+        #++
+        #need to modify this function in later version
+        logger.info("plot dashboard")
         """
         layout:
 
@@ -177,6 +176,8 @@ class Plot():
             yaxis8:		vol bar
 
         """
+
+
         rowNum = self.rowNum
         layoutRatio_row1_up = 2
         layoutRatio_row1_low = 3 # up!=low, bcz some over lap is ok
@@ -201,8 +202,6 @@ class Plot():
                                                             color="#1E90FF")#blue
         temp = self.__findMaxMin(record, ["Market Value"])
         fig.append_trace(performance_MarketValLine, 1, 1)
-        #print(fig["data"])
-        #print(type(fig["data"][0]['x']))
         #	calibrate layout
         maxVal, minVal = self.__findMaxMin(record, ["Market Value"])
         fig['layout']['yaxis1'].update(range= [minVal-(maxVal-minVal)/layoutRatio_row1_up, maxVal]) # 2/3
@@ -315,6 +314,8 @@ class Plot():
 
         
         #update data-yaxis mapping
+        #++
+        #temp use here
         fig['data'][1].update(yaxis='y'+str(3))
         fig['data'][2].update(yaxis='y'+str(4))
         fig['data'][3].update(yaxis='y'+str(5))

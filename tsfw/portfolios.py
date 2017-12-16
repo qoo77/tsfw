@@ -1,6 +1,8 @@
 import pandas as pd
 import os
-#from numpy import isnan
+
+import logging
+logger = logging.getLogger(__name__)
 
 class Portfolios():
     tradeHistoryCol = ["Intent",
@@ -34,7 +36,6 @@ class Portfolios():
 
 
     def __append(self, stockNum, date, intent, price, vol, remarks):
-        #print(intent+ " price=" +str(price)+ " vol="+str(vol))
         cashChange = -vol*price - self.__tradingLoss(intent, vol, price)
         averageBuyCost = self.__calcAverageBuyCost(stockNum, price, vol)
 
@@ -67,12 +68,11 @@ class Portfolios():
             return 0
 
     def trade(self, stockNum, date, intent, price, vol, remarks=" "):
-        #print("trade-> " + intent + " " + str(vol))
         if vol==0:
             return True
         #if isnan(price):
         #	return False
-
+        
         if intent=="sell" or intent=="bearishSell":
             vol = -vol
 
@@ -82,11 +82,10 @@ class Portfolios():
             remarks = "Out of range"
 
         # min trade unit = 1000 in tw, round vol
-        vol = round(vol/self.tradingPara.tradeUnit)*self.tradingPara.tradeUnit
-
-
+        vol = round(vol/self.tradingPara.tradeUnit)*self.tradingPara.tradeUnit        
 
         if self.__chkCanTrade(intent):
+            logger.log(logging.TRADE, str(stockNum) + ": " + date + " " + intent + " " + str(abs(vol)) + " at $" + str(price) + ", total $" + str(abs(price*vol)))
             self.__append(stockNum, date, intent, price, vol, remarks)
 
             # update budget
@@ -97,7 +96,6 @@ class Portfolios():
             return False
 
     def __chkCanTrade(self, intent):
-        #print("chkCanTrade")
         # check 7% or 10% by date ++
         # 金融監督管理委員會宣布自104年 6月1日起，將漲跌幅度由7%放寬為10%
         ret=False
@@ -119,36 +117,47 @@ class Portfolios():
         return ret
 
     def __tradingLoss(self, intent, vol, price):
-        #print("tradingFees")
         tradeMoney = vol*price
 
         if intent=="buy":
-            loss = tradeMoney * self.tradingPara.fees
-            if loss<20:
-                loss = 20
+            fees = tradeMoney * self.tradingPara.fees
+            if fees<20:
+                fees = 20
+            loss = fees
+            logger.log(logging.TRADE, "Fees: " + str(fees))
+
+
         elif intent=="sell":
-            loss = -tradeMoney * self.tradingPara.fees
-            if loss<20:
-                loss = 20
-            loss += (-tradeMoney * self.tradingPara.tax)
+            fees = -tradeMoney * self.tradingPara.fees
+            if fees<20:
+                fees = 20
+            tax = -tradeMoney * self.tradingPara.tax
+            loss = fees + tax
+            logger.log(logging.TRADE, "Fees: " + str(fees))
+            logger.log(logging.TRADE, "Tax: " + str(tax))
 
         elif intent=="bearishBuy":
             #++
-            loss = tradeMoney * self.tradingPara.fees
-            if loss<20:
-                loss = 20
+            fees = tradeMoney * self.tradingPara.fees
+            if fees<20:
+                fees = 20
+            loss = fees
+            logger.log(logging.TRADE, "Fees: " + str(fees))
 
         elif intent=="bearishSell":
             #++
-            loss = -tradeMoney * self.tradingPara.fees
-            if loss<20:
-                loss = 20
-            loss += (-tradeMoney * self.tradingPara.tax)
+            fees = -tradeMoney * self.tradingPara.fees
+            if fees<20:
+                fees = 20
+            tax = -tradeMoney * self.tradingPara.tax
+            loss = fees + tax
+            logger.log(logging.TRADE, "Fees: " + str(fees))
+            logger.log(logging.TRADE, "Tax: " + str(tax))
 
         return loss
 
     def checkout(self, stockNum, date, price, remarks="Check out"):
-        print("checkOut")
+        logger.info("Check Out Stock " + stockNum)
 
         vol = (self.data[stockNum].tradeSummary)["Volume"]
         if vol > 0:
@@ -175,6 +184,7 @@ class Portfolios():
             tradeHistory.to_csv(filePath + "/trade history.csv", sep='\t', float_format='%.2f', index_label=False, mode='w')
 
             # trade summary
+            logger.debug("Save File:" + filePath + "/trade summary.csv")
             self.data[stockNum].tradeSummary.to_csv(filePath + "/trade summary.csv", sep='\t', float_format='%.2f', index_label=False, mode='w')
 
 

@@ -1,5 +1,7 @@
 import pandas as pd
 import os
+import logging
+logger = logging.getLogger(__name__)
 
 class Recorder():
     recorderIndex = ["Market Value",
@@ -8,7 +10,6 @@ class Recorder():
 
 
     def __init__(self, portfolios, stockData, myBudget):
-
         self.data = {}
         self.portfolios = portfolios
         self.stockData = stockData
@@ -23,6 +24,9 @@ class Recorder():
             marketValue = self.__calcMarketValue(stockNum, date)
             todayVolume = self.__calcTodayVolume(stockNum, date)
             totalVolume = self.__calcTotalVolume(stockNum, date)
+
+            if todayVolume!=0:
+                logger.debug(stockNum + ": Market Val=" + str(marketValue) + ", Today Vol=" + str(todayVolume) + ", Total Vol=" + str(totalVolume))
         else:
             marketValue = 0
             todayVolume = 0
@@ -32,7 +36,7 @@ class Recorder():
 
         self.data[stockNum].loc[date] = [marketValue,
                                         int(todayVolume),
-                                        int(totalVolume)]#++
+                                        int(totalVolume)]
 
 
     def __calcMarketValue(self, stockNum, date):
@@ -56,4 +60,5 @@ class Recorder():
             if not os.path.exists(filePath):
                 os.makedirs(filePath)
 
+            logger.debug("Save File:" + filePath + "/recorder.csv")
             self.data[stockNum].to_csv(filePath + "/recorder.csv", sep='\t', float_format='%.2f', index_label=False, mode='w')

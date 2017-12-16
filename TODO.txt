@@ -1,5 +1,5 @@
 Hi priority
-交易策略買進時機, 開盤?關盤?高點?低點?
+Add performance
 
 
 0. statisticalData (TA lib)

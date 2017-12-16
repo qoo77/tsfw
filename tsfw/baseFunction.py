@@ -1,5 +1,7 @@
 import pandas as pd
 from numpy import isnan
+import logging
+logger = logging.getLogger(__name__)
 
 class BaseFunction():
     """docstring for test"""

@@ -1,9 +1,9 @@
-#import copy
 import pandas as pd
+import logging
+logger = logging.getLogger(__name__)
 
 class StockData():
     def __init__(self, stockNum, path):
-        print("stockData")
         self.trainingDateRegion = lambda:0
         self.testingDateRegion = lambda:0
         self.stockNum = stockNum
@@ -16,15 +16,19 @@ class StockData():
         endDate = None
 
         try:
+            logger.debug("Load File: " + self.path + "/" + str(stockNum) + ".csv")
             self.data = pd.read_csv(self.path + "/" + str(stockNum) + ".csv", na_values='--')
         except IOError:
+            logger.error("Load File fail: " + self.path + "/" + str(stockNum) + ".csv")
             raise Exception('Read CSV fail')
 
+        logger.debug("Organize Stock Data: " + str(stockNum))
         self.data = self.data.sort_index()
         
         self.data = self.data[~self.data.index.duplicated(keep='last')]# drop same index(date) rows
         self.data = self.data.dropna() # drop nan data
 
+        logger.debug("Save Stock Data " + self.path + "/" + str(stockNum) + ".csv")
         self.data.to_csv("data/" + str(stockNum) + ".csv", index_label=False, mode='w') # write back sorted data to csv
 
         self.trainingDateRegion.min = self.data.index.min()
@@ -38,7 +42,7 @@ class StockData():
 
 
     def splitData(self, cutDate, type=""):
-        print("splitData")
+        logger.info("Split data, type=" + type)
 
         if type == "AllTrain":
             self.testingDateRegion.min = None
@@ -55,6 +59,10 @@ class StockData():
             self.testingData=loc[cutDate:]
             self.testingData.drop(self.testingData.index[0])
             self.testingDateRegion.min=a.index.tolist()[0]
+
+        logger.debug("Training Data Date: " + str(self.trainingDateRegion.min) + " ~ " + str(self.trainingDateRegion.max))
+        logger.debug("Testing Data Date: " + str(self.testingDateRegion.min) + " ~ " + str(self.testingDateRegion.max))
+
 
     # basic
     def getVol(self, date):
