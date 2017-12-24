@@ -20,13 +20,13 @@ class Tsfw():
         self.outputPath = self.__initPath()
         self.logger = self.__initLogging()
 
-        logging.info("Init Tsfw")
+        logger.info("Init Tsfw")
 
-        self.baseFunction = BaseFunction()
+        self.bf = BaseFunction()
         self.stockData = {}
         self.myBudget = self.__loadMyBudget()
         self.statistics = Statistics()
-        self.portfolios = Portfolios(self.config.TradingPara, self.myBudget)
+        self.portfolios = Portfolios(self.stockData, self.config.TradingPara, self.myBudget)
         self.recorder = Recorder(self.portfolios, self.stockData, self.myBudget)
         self.algorithm = None
         self.plot = Plot(self.stockData, self.recorder, self.portfolios)
@@ -57,6 +57,9 @@ class Tsfw():
             configuration.LogLevel = lambda:0
             configuration.LogLevel.logFile = int(config.get("Log Level", "log file"))
             configuration.LogLevel.commandLine = int(config.get("Log Level", "command line"))
+        
+            configuration.Debug = lambda:0
+            configuration.Debug.debug = bool(config.get("Debug", "debug"))
         except:
             raise Exception('Wrong Config At ' + configPath)
 
@@ -77,15 +80,15 @@ class Tsfw():
         logging.TRADE = 15
         logging.addLevelName(logging.TRADE, "TRADE")
 
-        LogLvMapping = [logging.DEBUG, 
+        logLvMapping = [logging.DEBUG, 
                             logging.TRADE, 
                             logging.INFO, 
                             logging.WARNING, 
                             logging.ERROR, 
                             logging.CRITICAL]
 
-        logFileLv = LogLvMapping[self.config.LogLevel.logFile]
-        commandLineLv = LogLvMapping[self.config.LogLevel.commandLine]
+        logFileLv = logLvMapping[self.config.LogLevel.logFile]
+        commandLineLv = logLvMapping[self.config.LogLevel.commandLine]
 
 
         logging.basicConfig(level=logFileLv,
@@ -125,6 +128,10 @@ class Tsfw():
 
     def loadStockData(self, stockNum, readAll=False):
         
+        if self.algorithm==None:
+            logger.log(logging.WARNING, "No algorithm loaded")
+            return
+
         if readAll==True:
             logger.info("Load All Stock Data")
             stockNums = os.listdir(self.config.Path.dataDir)
@@ -155,16 +162,33 @@ class Tsfw():
         else:
             if stockNum in self.stockData:
                 logger.info("Delete Stock Data: " + str(stockNum))
-                del self.stockData[stockNum]            
+                del self.stockData[stockNum]
+            else:
+                logger.warning("No " + str(stockNum) + " Stock Data")            
 
     def training(self):
-        #++
-        logging.info("Training start")
+        logger.info("Training start")
+        if self.algorithm == None:
+            logger.log(logging.WARNING, "No algorithm loaded")
+            return
+
+        if len(self.stockData) == 0:
+            logger.log(logging.WARNING, "No stock input")
+            return
+        
         self.algorithm.train()
-        logging.info("Training end")
+        logger.info("Training end")
 
     def testing(self):
-        logging.info("Testing start")
+        logger.info("Testing start")
+
+        if self.algorithm == None:
+            logger.log(logging.WARNING, "No algorithm loaded")
+            return
+
+        if len(self.stockData) == 0:
+            logger.log(logging.WARNING, "No stock input")
+            return
 
         dateList = self.__genDateList(True)
 
@@ -178,7 +202,7 @@ class Tsfw():
         # make decision by day here
         for today in dateList:
             logger.debug(today)
-            yesterday = self.__getYesterday(today)
+            yesterday = self.bf.getYesterday(today)
             for stockNum in self.stockData:
                 if today in self.stockData[stockNum].testingData.index.tolist():               
                     if yesterday in self.stockData[stockNum].testingData.index.tolist():
@@ -196,10 +220,10 @@ class Tsfw():
         # after work
         self.algorithm.test_afterwork()
 
-        logging.info("Testing end")
+        logger.info("Testing end")
 
     def saveResult(self):
-        logging.info("saveResult")
+        logger.info("Save Result")
         if not os.path.exists(self.outputPath):
             os.makedirs(self.outputPath)
 
@@ -229,16 +253,11 @@ class Tsfw():
 
         return dateList
 
-    def __getYesterday(self, today):
-        today = datetime.strptime(today, "%Y-%m-%d")
-        yesterday = today - timedelta(1)
-        yesterday = yesterday.strftime("%Y-%m-%d")
-
-        return yesterday
+    
 
     def reset(self):
         #add log here
-        logging.warning("Reset tsfw module")
+        logger.warning("Reset tsfw module")
         dic = vars(self)
         for key in dic.keys():
             dic[key] = None

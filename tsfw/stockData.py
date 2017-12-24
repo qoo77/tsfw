@@ -25,10 +25,10 @@ class StockData():
         logger.debug("Organize Stock Data: " + str(stockNum))
         self.data = self.data.sort_index()
         
-        self.data = self.data[~self.data.index.duplicated(keep='last')]# drop same index(date) rows
+        self.data = self.data[~self.data.index.duplicated(keep='last')]# drop same index rows
         self.data = self.data.dropna() # drop nan data
 
-        logger.debug("Save Stock Data " + self.path + "/" + str(stockNum) + ".csv")
+        logger.debug("Save File: " + self.path + "/" + str(stockNum) + ".csv")
         self.data.to_csv("data/" + str(stockNum) + ".csv", index_label=False, mode='w') # write back sorted data to csv
 
         self.trainingDateRegion.min = self.data.index.min()

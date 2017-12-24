@@ -20,8 +20,8 @@ class Plot():
     def __plot_html(self, fig, filePath, stockNum):
 
         logger.debug("Save File:" + filePath + "/dashboard.html")
-        #py.offline.plot(fig, filename = (filePath + "/dashboard.html"), auto_open=False)
-        py.offline.plot(fig, filename = (filePath + "/dashboard.html"))
+        py.offline.plot(fig, filename = (filePath + "/dashboard.html"), auto_open=False)
+        #py.offline.plot(fig, filename = (filePath + "/dashboard.html"))
         pass
 
     def __genOhlcData(self, dataframe, startDate=None, endDate=None):
@@ -404,7 +404,8 @@ class Plot():
         fig = tools.make_subplots(rows=rowNum, cols=1,
             shared_xaxes=True,
             shared_yaxes=True,
-            vertical_spacing=0.05)
+            vertical_spacing=0.05,
+            print_grid=False)
 
         # add button
         fig["layout"]["xaxis1"]["rangeselector"]=rangeselector

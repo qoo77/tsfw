@@ -15,7 +15,8 @@ class Portfolios():
                     "bearishBuy",
                     "bearishSell"]
 
-    def __init__(self, tradingPara, myBudget):
+    def __init__(self, stockData, tradingPara, myBudget):
+        self.stockData = stockData
         self.tradingPara = tradingPara
         self.data = {}
         self.myBudget = myBudget
@@ -67,12 +68,20 @@ class Portfolios():
         else:
             return 0
 
-    def trade(self, stockNum, date, intent, price, vol, remarks=" "):
+    def trade(self, stockNum, date, intent, vol, price=None, remarks=" "):
         if vol==0:
+            logger.log(logging.WARNING, "Some logic error here")
             return True
-        #if isnan(price):
-        #	return False
-        
+
+        stockData = self.stockData[stockNum]
+
+        if price==None:
+            price = stockData.getOpenPrice(date)
+
+        if price>stockData.getMaxPrice(date) or price<stockData.getMinPrice(date):
+             logger.log(logging.WARNING, "Trade price out of range")
+             price = stockData.getOpenPrice(date)
+
         if intent=="sell" or intent=="bearishSell":
             vol = -vol
 
@@ -84,7 +93,7 @@ class Portfolios():
         # min trade unit = 1000 in tw, round vol
         vol = round(vol/self.tradingPara.tradeUnit)*self.tradingPara.tradeUnit        
 
-        if self.__chkCanTrade(intent):
+        if self.__chkCanTrade(intent, date):
             logger.log(logging.TRADE, str(stockNum) + ": " + date + " " + intent + " " + str(abs(vol)) + " at $" + str(price) + ", total $" + str(abs(price*vol)))
             self.__append(stockNum, date, intent, price, vol, remarks)
 
@@ -95,9 +104,12 @@ class Portfolios():
         else:
             return False
 
-    def __chkCanTrade(self, intent):
+    def __chkCanTrade(self, intent, date):
         # check 7% or 10% by date ++
-        # 金融監督管理委員會宣布自104年 6月1日起，將漲跌幅度由7%放寬為10%
+        # TW stock max increase/decrease  7% before 2015/6/1
+        # TW stock max increase/decrease 10% after  2015/6/1
+
+
         ret=False
         if intent=="buy":
             #++
@@ -157,7 +169,7 @@ class Portfolios():
         return loss
 
     def checkout(self, stockNum, date, price, remarks="Check out"):
-        logger.info("Check Out Stock " + stockNum)
+        logger.info(stockNum + ": Check Out")
 
         vol = (self.data[stockNum].tradeSummary)["Volume"]
         if vol > 0:
@@ -166,7 +178,7 @@ class Portfolios():
             intent = "buy"
 
         if vol!=0:
-            self.trade(stockNum, date, intent, price, vol, remarks)
+            self.trade(stockNum, date, intent, vol, remarks=remarks)
 
     def saveResult(self, path):
 

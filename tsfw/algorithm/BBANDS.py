@@ -6,7 +6,7 @@ class Algorithm():
 	def __init__(self, tsfw):
 		self.portfolios = tsfw.portfolios
 		self.tsfw = tsfw
-		self.bf = tsfw.baseFunction
+		self.bf = tsfw.bf
 		
 	
 	def splitData(self, stockData):
@@ -19,19 +19,8 @@ class Algorithm():
 		stockData = self.tsfw.stockData[stockNum].data
 
 		# calc BBANDS	
-		if not statistics.chkTAExist(stockNum, "bbands"):
-			df = pd.DataFrame(stockData["ClosePrice"])
-			df.rename(columns={'ClosePrice': 'close'}, inplace=True)
-
-			# upper, mid lower band
-			statistics.data[stockNum]["bbands"] = statistics.taFunc("bbands")(df, timeperiod=20, nbdevup=2, nbdevdn=2, matype=statistics.MA_Type.SMA)
-	
-			# %b (pb), def:(close-lower)/(upper-lower) 
-			statistics.data[stockNum]["bbands"]["pb"] = (stockData["ClosePrice"] - statistics.data[stockNum]["bbands"]["lowerband"])/(statistics.data[stockNum]["bbands"]["upperband"] - statistics.data[stockNum]["bbands"]["lowerband"])
-
-			# BW, def:(upper-lower)/middle
-			statistics.data[stockNum]["bbands"]["bw"] = (statistics.data[stockNum]["bbands"]["upperband"] - statistics.data[stockNum]["bbands"]["lowerband"])/statistics.data[stockNum]["bbands"]["middleband"]
-
+		statistics.load_Talib_BBANDS(stockNum, stockData, timeperiod=20)
+		
 		# add in plot queue
 		self.tsfw.plot.addPlot2Queue(stockNum, 
 										statistics.data[stockNum]["bbands"], 
@@ -58,11 +47,7 @@ class Algorithm():
 							"lowerband", 
 							line1Low2High=True,  
 							continuedDate=1):
-			self.portfolios.trade(stockNum, 
-									today, 
-									"buy", 
-									self.tsfw.stockData[stockNum].getOpenPrice(today), 
-									1000)
+			self.portfolios.trade(stockNum, today, "buy", 1000)
 
 
 		elif self.bf.isIntersect(yesterday, 
@@ -72,11 +57,7 @@ class Algorithm():
 							"upperband", 
 							line1Low2High=False,  
 							continuedDate=1):
-			self.portfolios.trade(stockNum, 
-									today, 
-									"sell", 
-									self.tsfw.stockData[stockNum].getOpenPrice(today), 
-									1000)
+			self.portfolios.trade(stockNum, today, "sell", 1000)
 
 
 	def test_dateSummary(self, date):

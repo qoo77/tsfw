@@ -1,12 +1,33 @@
 import pandas as pd
 from numpy import isnan
+from datetime import datetime, date, timedelta
 import logging
 logger = logging.getLogger(__name__)
 
 class BaseFunction():
-    """docstring for test"""
     def __init__(self):
         pass
+
+    def str2Date(self, strDate):
+        return datetime.strptime(strDate, "%Y-%m-%d")
+
+    def date2Str(self, date):
+        return date.strftime("%Y-%m-%d")
+
+    def dateMinus(self, date, num):
+        if type(date) == str:
+            date = self.str2Date(date)
+            date = date - timedelta(num)
+            date = self.date2Str(date)
+        else:
+            date = date - timedelta(num)
+
+        return date
+
+    def getYesterday(self, today):
+        today = self.str2Date(today)
+        yesterday = self.date2Str(self.dateMinus(today, 1))
+        return yesterday
 
     def isIntersect(self, date, line1, line1Col, line2, line2Col, line1Low2High, continuedDate=1):
 

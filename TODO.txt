@@ -1,19 +1,10 @@
 Hi priority
-Add performance
-
-
-0. statisticalData (TA lib)
-1. how to judge chkCanTrade() from df
-
-
-
+0. add debug option [Debug] debug
+1. add global config para
+2. add chkCanTrade() feature
+3. fix/verify bearishBuy and bearishSell trade flow
+4. stock parsing tool
 
 Low priority
-2. how to quantify performance in Portfolios()
-2. rebuild AlgorithmTemplate.py after GoldenCross.py finish
-3. add logging system
-4. training architecture
-
-
-note
-1. bearishBuy and bearishSell is cotroll by algorithm.py
+1. training architecture
+2. review project architecture
