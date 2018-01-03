@@ -12,7 +12,8 @@ def main():
     #tsfw.loadStockData("2002")
     #tsfw.loadStockData("7773939889")
     #tsfw.loadStockData("1111", readAll=True)
-    tsfw.loadStockData("1101", startDate="2011-09-06", endDate="2011-09-20")
+    #tsfw.loadStockData("1101")
+    tsfw.loadStockData("1101", startDate="2011-10-07", endDate="2011-10-17")
     #tsfw.loadStockData("1102")
     #tsfw.delStockData("1102")
 

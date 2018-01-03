@@ -32,12 +32,12 @@ class StockData():
         dateMax = self.data.index.max()
 
         if startDate!=None and startDate>dateMin:
-            self.data = self.data[dateMin:]
+            self.data = self.data.loc[dateMin:]
+            dateMin = startDate
 
         if endDate!=None and endDate<dateMax:
-            self.data = self.data[:dateMax]
-
-
+            self.data = self.data.loc[:dateMax]
+            dateMax = endDate
 
         self.trainingDateRegion.min = dateMin
         self.trainingDateRegion.max = dateMax
