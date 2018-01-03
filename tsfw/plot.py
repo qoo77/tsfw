@@ -1,3 +1,4 @@
+from tsfw.config import CONFIG
 import plotly as py
 import plotly.graph_objs as go
 from plotly import tools
@@ -20,9 +21,12 @@ class Plot():
     def __plot_html(self, fig, filePath, stockNum):
 
         logger.debug("Save File:" + filePath + "/dashboard.html")
-        py.offline.plot(fig, filename = (filePath + "/dashboard.html"), auto_open=False)
-        #py.offline.plot(fig, filename = (filePath + "/dashboard.html"))
-        pass
+
+        if CONFIG.Debug.debug:
+            py.offline.plot(fig, filename = (filePath + "/dashboard.html"), auto_open=False)
+        else:
+            py.offline.plot(fig, filename = (filePath + "/dashboard.html"), auto_open=True)
+
 
     def __genOhlcData(self, dataframe, startDate=None, endDate=None):
         df = dataframe.loc[startDate:endDate]

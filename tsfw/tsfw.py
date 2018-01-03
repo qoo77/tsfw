@@ -1,4 +1,8 @@
-import configparser
+import tsfw.config as config
+config.init()
+CONFIG = config.CONFIG
+
+from tsfw.stockParser import StockParser as StockParser
 from tsfw.portfolios import Portfolios as Portfolios
 from tsfw.plot import Plot as Plot
 from tsfw.stockData import StockData as StockData
@@ -8,66 +12,41 @@ from tsfw.baseFunction import BaseFunction as BaseFunction
 import importlib
 from datetime import datetime, date, timedelta
 import os
+from shutil import rmtree
 
 import logging
 logger = logging.getLogger(__name__)
 
+
+
 class Tsfw():
 
     def __init__(self):
-
-        self.config = self.__loadConfig()
         self.outputPath = self.__initPath()
         self.logger = self.__initLogging()
 
         logger.info("Init Tsfw")
 
         self.bf = BaseFunction()
+        self.stockParser = StockParser()
         self.stockData = {}
         self.myBudget = self.__loadMyBudget()
         self.statistics = Statistics()
-        self.portfolios = Portfolios(self.stockData, self.config.TradingPara, self.myBudget)
+        self.portfolios = Portfolios(self.stockData, self.myBudget)
         self.recorder = Recorder(self.portfolios, self.stockData, self.myBudget)
         self.algorithm = None
         self.plot = Plot(self.stockData, self.recorder, self.portfolios)
 
-    def __loadConfig(self):
-        configPath = "tsfw/config.ini"
-        config = configparser.ConfigParser()
-        config.read(configPath)
-
-        try:
-            configuration = lambda:0
-            configuration.Path = lambda:0
-            configuration.Path.dataDir = config.get("Path", "data dir")
-            configuration.Path.outputDir = config.get("Path", "output dir")
-
-            configuration.Budget = lambda:0
-            configuration.Budget.money = int(config.get("Budget", "money"))
-
-            configuration.Algorithm = lambda:0
-
-            configuration.TradingPara = lambda:0
-            configuration.TradingPara.fees = float(config.get("Trading Para", "fees"))
-            configuration.TradingPara.minFees = float(config.get("Trading Para", "min fees"))
-            configuration.TradingPara.tax = float(config.get("Trading Para", "tax"))#only at sell
-            configuration.TradingPara.canBearish = int(config.get("Trading Para", "can bearish"))
-            configuration.TradingPara.tradeUnit = int(config.get("Trading Para", "trade unit"))
-        
-            configuration.LogLevel = lambda:0
-            configuration.LogLevel.logFile = int(config.get("Log Level", "log file"))
-            configuration.LogLevel.commandLine = int(config.get("Log Level", "command line"))
-        
-            configuration.Debug = lambda:0
-            configuration.Debug.debug = bool(config.get("Debug", "debug"))
-        except:
-            raise Exception('Wrong Config At ' + configPath)
-
-        return configuration
 
     def __initPath(self):
-        dirName = datetime.now().strftime("%Y-%m-%d %H.%M.%S")
-        outputPath = self.config.Path.outputDir + "/" + dirName
+        if CONFIG.Debug.debug:
+            dirName = "debug"
+            outputPath = CONFIG.Path.outputDir + "/" + dirName
+            if os.path.exists(outputPath):
+                rmtree(outputPath)             
+        else:
+            dirName = datetime.now().strftime("%Y-%m-%d %H.%M.%S")
+            outputPath = CONFIG.Path.outputDir + "/" + dirName
 
         return outputPath
 
@@ -87,8 +66,8 @@ class Tsfw():
                             logging.ERROR, 
                             logging.CRITICAL]
 
-        logFileLv = logLvMapping[self.config.LogLevel.logFile]
-        commandLineLv = logLvMapping[self.config.LogLevel.commandLine]
+        logFileLv = logLvMapping[CONFIG.LogLevel.logFile]
+        commandLineLv = logLvMapping[CONFIG.LogLevel.commandLine]
 
 
         logging.basicConfig(level=logFileLv,
@@ -104,17 +83,17 @@ class Tsfw():
         logging.getLogger('').addHandler(console)
 
 
-        
-
     def __loadMyBudget(self):
         myBudget = lambda:0
-        myBudget.initMoney = self.config.Budget.money
+        myBudget.initMoney = CONFIG.Budget.money
         myBudget.remainMoney = myBudget.initMoney
         return myBudget
 
-    def loadAlgorithm(self, name):
-        
+    def parseStockData(self, stockNum, startDate=None, endDate=None, parseAll=False):    
+        self.stockParser.parseStock(stockNum, startDate, endDate, parseAll)
 
+
+    def loadAlgorithm(self, name):
         try:
             logger.info("Load Algorithm: " + name)
             Algorithm = importlib.import_module("tsfw.algorithm." + name)
@@ -124,9 +103,8 @@ class Tsfw():
 
         self.algorithm = Algorithm.Algorithm(self)
 
-    
 
-    def loadStockData(self, stockNum, readAll=False):
+    def loadStockData(self, stockNum, startDate=None, endDate=None, readAll=False):
         
         if self.algorithm==None:
             logger.log(logging.WARNING, "No algorithm loaded")
@@ -134,7 +112,7 @@ class Tsfw():
 
         if readAll==True:
             logger.info("Load All Stock Data")
-            stockNums = os.listdir(self.config.Path.dataDir)
+            stockNums = os.listdir(CONFIG.Path.dataDir)
             stockNums = [x[:-4] for x in stockNums if (x[-4:]==".csv" and (".DS_Store" not in x))]         
         else:
             stockNums = [stockNum]
@@ -142,7 +120,7 @@ class Tsfw():
         for stockNum in stockNums:
             if stockNum not in self.stockData:
                 logger.info("Load Stock Data: " + str(stockNum))
-                stockData = StockData(stockNum, self.config.Path.dataDir)
+                stockData = StockData(stockNum, startDate, endDate)
 
                 self.algorithm.splitData(stockData)
 
@@ -153,6 +131,7 @@ class Tsfw():
                 self.stockData[stockNum] = stockData
 
         self.portfolios.addStock(stockNum)
+
 
     def delStockData(self, stockNum, delAll=False):
         
@@ -166,6 +145,7 @@ class Tsfw():
             else:
                 logger.warning("No " + str(stockNum) + " Stock Data")            
 
+
     def training(self):
         logger.info("Training start")
         if self.algorithm == None:
@@ -178,6 +158,7 @@ class Tsfw():
         
         self.algorithm.train()
         logger.info("Training end")
+
 
     def testing(self):
         logger.info("Testing start")
@@ -222,6 +203,7 @@ class Tsfw():
 
         logger.info("Testing end")
 
+
     def saveResult(self):
         logger.info("Save Result")
         if not os.path.exists(self.outputPath):
@@ -231,7 +213,6 @@ class Tsfw():
         self.recorder.saveResult(self.outputPath)
         self.plot.saveResult(self.outputPath)
 
-    
 
     def __genDateList(self, isTestData):
         minList = []
@@ -252,11 +233,9 @@ class Tsfw():
         dateList  = [(startDate+timedelta(x)).strftime("%Y-%m-%d") for x in range(int(deltaDate))]
 
         return dateList
-
     
 
     def reset(self):
-        #add log here
         logger.warning("Reset tsfw module")
         dic = vars(self)
         for key in dic.keys():

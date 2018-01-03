@@ -1,25 +1,22 @@
+from tsfw.config import CONFIG
 import pandas as pd
 import logging
 logger = logging.getLogger(__name__)
 
 class StockData():
-    def __init__(self, stockNum, path):
+    def __init__(self, stockNum, startDate=None, endDate=None):
         self.trainingDateRegion = lambda:0
         self.testingDateRegion = lambda:0
         self.stockNum = stockNum
-        self.path = path
-        self.__loadDataFromFile(stockNum)
+        self.__loadDataFromFile(stockNum, startDate, endDate)
 
-    def __loadDataFromFile(self, stockNum):
-
-        startDate = None
-        endDate = None
+    def __loadDataFromFile(self, stockNum, startDate, endDate):
 
         try:
-            logger.debug("Load File: " + self.path + "/" + str(stockNum) + ".csv")
-            self.data = pd.read_csv(self.path + "/" + str(stockNum) + ".csv", na_values='--')
+            logger.debug("Load File: " + CONFIG.Path.dataDir + "/" + str(stockNum) + ".csv")
+            self.data = pd.read_csv(CONFIG.Path.dataDir + "/" + str(stockNum) + ".csv", na_values='--')
         except IOError:
-            logger.error("Load File fail: " + self.path + "/" + str(stockNum) + ".csv")
+            logger.error("Load File fail: " + CONFIG.Path.dataDir + "/" + str(stockNum) + ".csv")
             raise Exception('Read CSV fail')
 
         logger.debug("Organize Stock Data: " + str(stockNum))
@@ -28,14 +25,25 @@ class StockData():
         self.data = self.data[~self.data.index.duplicated(keep='last')]# drop same index rows
         self.data = self.data.dropna() # drop nan data
 
-        logger.debug("Save File: " + self.path + "/" + str(stockNum) + ".csv")
+        logger.debug("Save File: " + CONFIG.Path.dataDir + "/" + str(stockNum) + ".csv")
         self.data.to_csv("data/" + str(stockNum) + ".csv", index_label=False, mode='w') # write back sorted data to csv
 
-        self.trainingDateRegion.min = self.data.index.min()
-        self.trainingDateRegion.max = self.data.index.max()
+        dateMin = self.data.index.min()
+        dateMax = self.data.index.max()
 
-        self.testingDateRegion.min = self.data.index.min()
-        self.testingDateRegion.max = self.data.index.max()
+        if startDate!=None and startDate>dateMin:
+            self.data = self.data[dateMin:]
+
+        if endDate!=None and endDate<dateMax:
+            self.data = self.data[:dateMax]
+
+
+
+        self.trainingDateRegion.min = dateMin
+        self.trainingDateRegion.max = dateMax
+
+        self.testingDateRegion.min = dateMin
+        self.testingDateRegion.max = dateMax
 
         self.trainingData = self.data
         self.testingData = self.data

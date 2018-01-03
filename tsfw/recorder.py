@@ -1,3 +1,4 @@
+from tsfw.config import CONFIG
 import pandas as pd
 import os
 import logging

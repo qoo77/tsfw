@@ -1,3 +1,4 @@
+from tsfw.config import CONFIG
 import pandas as pd
 import os
 
@@ -15,9 +16,8 @@ class Portfolios():
                     "bearishBuy",
                     "bearishSell"]
 
-    def __init__(self, stockData, tradingPara, myBudget):
+    def __init__(self, stockData, myBudget):
         self.stockData = stockData
-        self.tradingPara = tradingPara
         self.data = {}
         self.myBudget = myBudget
 
@@ -91,7 +91,7 @@ class Portfolios():
             remarks = "Out of range"
 
         # min trade unit = 1000 in tw, round vol
-        vol = round(vol/self.tradingPara.tradeUnit)*self.tradingPara.tradeUnit        
+        vol = round(vol/CONFIG.TradingPara.tradeUnit)*CONFIG.TradingPara.tradeUnit        
 
         if self.__chkCanTrade(intent, date):
             logger.log(logging.TRADE, str(stockNum) + ": " + date + " " + intent + " " + str(abs(vol)) + " at $" + str(price) + ", total $" + str(abs(price*vol)))
@@ -116,14 +116,14 @@ class Portfolios():
             ret=True
         elif intent=="bearishBuy":
             #++
-            if bool(self.tradingPara.canBearish):
+            if bool(CONFIG.TradingPara.canBearish):
                 ret=True
         elif intent=="sell":
             #++
             ret=True
         elif intent=="bearishSell":
             #++
-            if bool(self.tradingPara.canBearish):
+            if bool(CONFIG.TradingPara.canBearish):
                 ret=True
 
         return ret
@@ -132,7 +132,7 @@ class Portfolios():
         tradeMoney = vol*price
 
         if intent=="buy":
-            fees = tradeMoney * self.tradingPara.fees
+            fees = tradeMoney * CONFIG.TradingPara.fees
             if fees<20:
                 fees = 20
             loss = fees
@@ -140,17 +140,17 @@ class Portfolios():
 
 
         elif intent=="sell":
-            fees = -tradeMoney * self.tradingPara.fees
+            fees = -tradeMoney * CONFIG.TradingPara.fees
             if fees<20:
                 fees = 20
-            tax = -tradeMoney * self.tradingPara.tax
+            tax = -tradeMoney * CONFIG.TradingPara.tax
             loss = fees + tax
             logger.log(logging.TRADE, "Fees: " + str(fees))
             logger.log(logging.TRADE, "Tax: " + str(tax))
 
         elif intent=="bearishBuy":
             #++
-            fees = tradeMoney * self.tradingPara.fees
+            fees = tradeMoney * CONFIG.TradingPara.fees
             if fees<20:
                 fees = 20
             loss = fees
@@ -158,10 +158,10 @@ class Portfolios():
 
         elif intent=="bearishSell":
             #++
-            fees = -tradeMoney * self.tradingPara.fees
+            fees = -tradeMoney * CONFIG.TradingPara.fees
             if fees<20:
                 fees = 20
-            tax = -tradeMoney * self.tradingPara.tax
+            tax = -tradeMoney * CONFIG.TradingPara.tax
             loss = fees + tax
             logger.log(logging.TRADE, "Fees: " + str(fees))
             logger.log(logging.TRADE, "Tax: " + str(tax))

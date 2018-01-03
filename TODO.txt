@@ -1,9 +1,8 @@
 Hi priority
-0. add debug option [Debug] debug
-1. add global config para
+1. stock parsing tool
 2. add chkCanTrade() feature
 3. fix/verify bearishBuy and bearishSell trade flow
-4. stock parsing tool
+
 
 Low priority
 1. training architecture
