@@ -1,3 +1,5 @@
+from tsfw.config import CONFIG
+import tsfw.baseFunction as bf
 import pandas as pd
 import logging
 logger = logging.getLogger(__name__)
@@ -6,9 +8,7 @@ class Algorithm():
 	def __init__(self, tsfw):
 		self.portfolios = tsfw.portfolios
 		self.tsfw = tsfw
-		self.bf = tsfw.bf
 		
-	
 	def splitData(self, stockData):
 		# All data testing, no training data
 		stockData.splitData(None, "AllTest")
@@ -40,7 +40,7 @@ class Algorithm():
 
 	def test_strategy(self, stockNum, today, yesterday):
 
-		if self.bf.isIntersect(yesterday, 
+		if bf.isIntersect(yesterday, 
 							self.tsfw.stockData[stockNum].testingData, 
 							"ClosePrice", 
 							self.tsfw.statistics.data[stockNum]["bbands"], 
@@ -50,7 +50,7 @@ class Algorithm():
 			self.portfolios.trade(stockNum, today, "buy", 1000)
 
 
-		elif self.bf.isIntersect(yesterday, 
+		elif bf.isIntersect(yesterday, 
 							self.tsfw.stockData[stockNum].testingData, 
 							"ClosePrice", 
 							self.tsfw.statistics.data[stockNum]["bbands"], 

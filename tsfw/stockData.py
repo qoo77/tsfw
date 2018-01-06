@@ -1,23 +1,57 @@
 from tsfw.config import CONFIG
+import tsfw.baseFunction as bf
 import pandas as pd
 import logging
 logger = logging.getLogger(__name__)
 
 class StockData():
+
+    csvCol = ["Date", "Vol","TotalAmount","OpenPrice","MaxPrice","MinPrice","ClosePrice","PriceChange","NumberOfTransactions"]
+
     def __init__(self, stockNum, startDate=None, endDate=None):
         self.trainingDateRegion = lambda:0
         self.testingDateRegion = lambda:0
         self.stockNum = stockNum
-        self.__loadDataFromFile(stockNum, startDate, endDate)
+        self.__loadData(stockNum, startDate, endDate)
 
-    def __loadDataFromFile(self, stockNum, startDate, endDate):
+    def __loadDataFromFile_TSEC(self, stockNum):
 
         try:
             logger.debug("Load File: " + CONFIG.Path.dataDir + "/" + str(stockNum) + ".csv")
-            self.data = pd.read_csv(CONFIG.Path.dataDir + "/" + str(stockNum) + ".csv", na_values='--')
+            logger.debug("Data Type: " + CONFIG.StockData.dataSource)
+            data = pd.read_csv(CONFIG.Path.dataDir + "/" + str(stockNum) + ".csv", header=None, na_values=['--', '---'])
         except IOError:
             logger.error("Load File fail: " + CONFIG.Path.dataDir + "/" + str(stockNum) + ".csv")
             raise Exception('Read CSV fail')
+
+        data.columns = self.csvCol
+
+        dateList = data["Date"].tolist()
+
+        dateList = bf.twDate2WestDate(dateList, formatChk=1)
+        data["Date"] = dateList
+
+        #data.Date = pd.to_datetime(data.Date)
+        data.set_index("Date", inplace=True)
+
+        return data
+
+    def __loadDataFromFile(self, stockNum):
+        try:
+            logger.debug("Load File: " + CONFIG.Path.dataDir + "/" + str(stockNum) + ".csv")
+            data = pd.read_csv(CONFIG.Path.dataDir + "/" + str(stockNum) + ".csv", na_values='--')
+        except IOError:
+            logger.error("Load File fail: " + CONFIG.Path.dataDir + "/" + str(stockNum) + ".csv")
+            raise Exception('Read CSV fail')
+
+        return data
+
+    def __loadData(self, stockNum, startDate, endDate):
+
+        if CONFIG.StockData.dataSource == "TSEC":
+            self.data = self.__loadDataFromFile_TSEC(stockNum)
+        else:
+            self.data = self.__loadDataFromFile(stockNum)
 
         logger.debug("Organize Stock Data: " + str(stockNum))
         self.data = self.data.sort_index()
@@ -25,8 +59,13 @@ class StockData():
         self.data = self.data[~self.data.index.duplicated(keep='last')]# drop same index rows
         self.data = self.data.dropna() # drop nan data
 
-        logger.debug("Save File: " + CONFIG.Path.dataDir + "/" + str(stockNum) + ".csv")
-        self.data.to_csv("data/" + str(stockNum) + ".csv", index_label=False, mode='w') # write back sorted data to csv
+        if CONFIG.StockData.organizeAndOverwriteData == True:
+            print(CONFIG.StockData.organizeAndOverwriteData)
+            logger.debug("Save File: " + CONFIG.Path.dataDir + "/" + str(stockNum) + ".csv")
+            logger.debug("Save File:GGGG")
+            logger.debug("Save File:GGGG")
+            logger.debug("Save File:GGGG")
+            self.data.to_csv("data/" + str(stockNum) + ".csv", index_label=False, mode='w') # write back sorted data to csv
 
         dateMin = self.data.index.min()
         dateMax = self.data.index.max()

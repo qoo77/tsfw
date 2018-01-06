@@ -1,4 +1,5 @@
 from tsfw.config import CONFIG
+import tsfw.baseFunction as bf
 import pandas as pd
 import talib
 import logging

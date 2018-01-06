@@ -16,6 +16,10 @@ def load():
         configuration.Path.dataDir = config.get("Path", "data dir")
         configuration.Path.outputDir = config.get("Path", "output dir")
 
+        configuration.StockData = lambda:0
+        configuration.StockData.organizeAndOverwriteData = False if config.get("StockData", "organize and overwrite data")=="0" else True
+        configuration.StockData.dataSource = config.get("StockData", "data source")
+
         configuration.Budget = lambda:0
         configuration.Budget.money = int(config.get("Budget", "money"))
 
@@ -33,7 +37,9 @@ def load():
         configuration.LogLevel.commandLine = int(config.get("Log Level", "command line"))
     
         configuration.Debug = lambda:0
-        configuration.Debug.debug = bool(config.get("Debug", "debug"))
+        configuration.Debug.debug = False if config.get("Debug", "debug")=="0" else True
+        
+
     except:
         raise Exception('Wrong Config At ' + configPath)
 

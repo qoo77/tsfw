@@ -1,4 +1,5 @@
 from tsfw.config import CONFIG
+import tsfw.baseFunction as bf
 import pandas as pd
 import os
 
@@ -87,6 +88,9 @@ class Portfolios():
 
         # check if out of range, sell/buy all
         if vol+self.data[stockNum].tradeSummary["Volume"]<0:
+            if self.data[stockNum].tradeSummary["Volume"]==0:
+                return False
+
             vol = -self.data[stockNum].tradeSummary["Volume"]
             remarks = "Out of range"
 

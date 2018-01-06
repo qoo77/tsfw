@@ -2,13 +2,12 @@ import tsfw.config as config
 config.init()
 CONFIG = config.CONFIG
 
-from tsfw.stockParser import StockParser as StockParser
 from tsfw.portfolios import Portfolios as Portfolios
 from tsfw.plot import Plot as Plot
 from tsfw.stockData import StockData as StockData
 from tsfw.recorder import Recorder as Recorder
 from tsfw.statistics import Statistics as Statistics
-from tsfw.baseFunction import BaseFunction as BaseFunction
+import tsfw.baseFunction as bf
 import importlib
 from datetime import datetime, date, timedelta
 import os
@@ -27,8 +26,6 @@ class Tsfw():
 
         logger.info("Init Tsfw")
 
-        self.bf = BaseFunction()
-        self.stockParser = StockParser()
         self.stockData = {}
         self.myBudget = self.__loadMyBudget()
         self.statistics = Statistics()
@@ -88,10 +85,6 @@ class Tsfw():
         myBudget.initMoney = CONFIG.Budget.money
         myBudget.remainMoney = myBudget.initMoney
         return myBudget
-
-    def parseStockData(self, stockNum, startDate=None, endDate=None, parseAll=False):    
-        self.stockParser.parseStock(stockNum, startDate, endDate, parseAll)
-
 
     def loadAlgorithm(self, name):
         try:
@@ -183,7 +176,7 @@ class Tsfw():
         # make decision by day here
         for today in dateList:
             logger.debug(today)
-            yesterday = self.bf.getYesterday(today)
+            yesterday = bf.getYesterday(today)
             for stockNum in self.stockData:
                 if today in self.stockData[stockNum].testingData.index.tolist():               
                     if yesterday in self.stockData[stockNum].testingData.index.tolist():
