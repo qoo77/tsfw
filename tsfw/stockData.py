@@ -156,7 +156,10 @@ class StockData():
                 if CONFIG.TradingPara.canBearish:
                     ret = TRADE_ALLOWED
 
-        if ret==TRADE_REACH_MAX_INCREASE_BUY:
+        if ret==TRADE_ALLOWED:
+            # for speed up
+            return ret
+        elif ret==TRADE_REACH_MAX_INCREASE_BUY:
             logger.log(logging.TRADE, "Reach max increase, cant buy")
         elif ret==TRADE_REACH_MAX_DECREASE_BUY:
             logger.log(logging.TRADE, "Reach max decrease, cant buy")
@@ -178,7 +181,7 @@ class StockData():
             logger.log(logging.TRADE, "No bearish by config, cant bearishSell")
         
 
-        return bool(ret)
+        return ret
 
 
     def splitData(self, cutDate, type=""):
