@@ -1,3 +1,4 @@
+from tsfw.const import*
 import configparser
 
 def init():
@@ -26,10 +27,11 @@ def load():
         configuration.Algorithm = lambda:0
 
         configuration.TradingPara = lambda:0
+        configuration.TradingPara.market = config.get("Trading Para", "market")
         configuration.TradingPara.fees = float(config.get("Trading Para", "fees"))
         configuration.TradingPara.minFees = float(config.get("Trading Para", "min fees"))
         configuration.TradingPara.tax = float(config.get("Trading Para", "tax"))#only at sell
-        configuration.TradingPara.canBearish = int(config.get("Trading Para", "can bearish"))
+        configuration.TradingPara.canBearish = False if config.get("Trading Para", "tax")=="0" else True
         configuration.TradingPara.tradeUnit = int(config.get("Trading Para", "trade unit"))
     
         configuration.LogLevel = lambda:0

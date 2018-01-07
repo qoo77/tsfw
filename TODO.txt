@@ -7,3 +7,4 @@ Hi priority
 Low priority
 1. training architecture
 2. review project architecture
+3. double check stock dataframe type

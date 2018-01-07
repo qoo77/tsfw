@@ -1,4 +1,5 @@
 from tsfw.config import CONFIG
+from tsfw.const import*
 import pandas as pd
 from numpy import isnan
 from datetime import datetime, date, timedelta

@@ -1,4 +1,5 @@
 from tsfw.config import CONFIG
+from tsfw.const import*
 import tsfw.baseFunction as bf
 import pandas as pd
 import logging
@@ -19,7 +20,7 @@ class StockData():
         try:
             logger.debug("Load File: " + CONFIG.Path.dataDir + "/" + str(stockNum) + ".csv")
             logger.debug("Data Type: " + CONFIG.StockData.dataSource)
-            data = pd.read_csv(CONFIG.Path.dataDir + "/" + str(stockNum) + ".csv", header=None, na_values=['--', '---'])
+            data = pd.read_csv(CONFIG.Path.dataDir + "/" + str(stockNum) + ".csv", header=None, na_values=['--', '---', 'X0.00', 'X'])
         except IOError:
             logger.error("Load File fail: " + CONFIG.Path.dataDir + "/" + str(stockNum) + ".csv")
             raise Exception('Read CSV fail')
@@ -92,6 +93,93 @@ class StockData():
         self.trainingData = self.data
         self.testingData = self.data
 
+    def chkCanTrade(self, intent, date):
+
+        ret = False
+
+        if CONFIG.TradingPara.market == "TW":
+            # check 7% or 10% by date ++
+            # TW stock max increase/decrease  7% before 2015/6/1
+            # TW stock max increase/decrease 10% after  2015/6/1
+            if date<"2015-06-01":
+                maxIncDecPercent = 0.07
+            else:
+                maxIncDecPercent = 0.1
+
+            # ignore TW complex formula, use 7% or 10% x 0.95
+            maxIncDecPercent = maxIncDecPercent*0.95
+
+            try:
+                todayIncDecPercent = self.getPriceChange(date)/self.getClosePrice(date, previousDay=1)
+            except:
+                # divide by zero or boundary case
+                logger.debug("chkCanTrade() value error, " + str(date) + ", " + str(self.getPriceChange(date)) + ", " + str(self.getClosePrice(date, previousDay=1)))
+                todayIncDecPercent = 0
+
+            if intent=="buy":
+                if todayIncDecPercent >= maxIncDecPercent:
+                    ret = TRADE_REACH_MAX_INCREASE_BUY
+                else:
+                    ret = TRADE_ALLOWED
+            elif intent=="bearishBuy":
+                #++
+                if CONFIG.TradingPara.canBearish:
+                    if todayIncDecPercent >= maxIncDecPercent:
+                        ret = TRADE_REACH_MAX_INCREASE_BEARISHBUY
+                    else:
+                        ret = TRADE_ALLOWED
+            elif intent=="sell":
+                if -todayIncDecPercent >= maxIncDecPercent:
+                    ret = TRADE_REACH_MAX_INCREASE_SELL
+                else:
+                    ret = TRADE_ALLOWED
+            elif intent=="bearishSell":
+                #++
+                if CONFIG.TradingPara.canBearish:
+                    if -todayIncDecPercent >= maxIncDecPercent:
+                        ret = TRADE_REACH_MAX_INCREASE_BEARISHSELL
+                    else:
+                        ret = TRADE_ALLOWED
+        else:
+            if intent=="buy":
+                #++
+                ret = TRADE_ALLOWED
+            elif intent=="bearishBuy":
+                #++
+                if CONFIG.TradingPara.canBearish:
+                    ret = TRADE_ALLOWED
+            elif intent=="sell":
+                #++
+                ret = TRADE_ALLOWED
+            elif intent=="bearishSell":
+                #++
+                if CONFIG.TradingPara.canBearish:
+                    ret = TRADE_ALLOWED
+
+        if ret==TRADE_REACH_MAX_INCREASE_BUY:
+            logger.log(logging.TRADE, "Reach max increase, cant buy")
+        elif ret==TRADE_REACH_MAX_DECREASE_BUY:
+            logger.log(logging.TRADE, "Reach max decrease, cant buy")
+        elif ret==TRADE_REACH_MAX_INCREASE_BEARISHBUY:
+            logger.log(logging.TRADE, "Reach max increase, cant bearishBuy")
+        elif ret==TRADE_REACH_MAX_DECREASE_BEARISHBUY:
+            logger.log(logging.TRADE, "Reach max decrease, cant bearishBuy")
+        elif ret==TRADE_NO_BEARISHBUY:
+            logger.log(logging.TRADE, "No bearish by config, cant bearishBuy")
+        elif ret==TRADE_REACH_MAX_INCREASE_SELL:
+            logger.log(logging.TRADE, "Reach max increase, cant sell")
+        elif ret==TRADE_REACH_MAX_DECREASE_SELl:
+            logger.log(logging.TRADE, "Reach max decrease, cant sell")
+        elif ret==TRADE_REACH_MAX_INCREASE_BEARISHSELL:
+            logger.log(logging.TRADE, "Reach max increase, cant bearishSell")
+        elif ret==TRADE_REACH_MAX_DECREASE_BEARISHSELL:
+            logger.log(logging.TRADE, "Reach max decrease, cant bearishSell")
+        elif ret==TRADE_NO_BEARISHSELL:
+            logger.log(logging.TRADE, "No bearish by config, cant bearishSell")
+        
+
+        return bool(ret)
+
 
     def splitData(self, cutDate, type=""):
         logger.info("Split data, type=" + type)
@@ -117,28 +205,36 @@ class StockData():
 
 
     # basic
-    def getVol(self, date):
-        return self.data["Vol"][date]
+    def getVol(self, date, previousDay=0):
+        if not previousDay:
+            return self.data["Vol"][date]
+        else:
+            idx = self.data.index.get_loc(date)
+            return self.data["Vol"].iloc[idx-previousDay]          
 
-    def getTotalAmount(self, date):
+    def getTotalAmount(self, date, previousDay=0):
         return self.data["TotalAmount"][date]
 
-    def getOpenPrice(self, date):
+    def getOpenPrice(self, date, previousDay=0):
         return self.data["OpenPrice"][date]
 
-    def getMaxPrice(self, date):
+    def getMaxPrice(self, date, previousDay=0):
         return self.data["MaxPrice"][date]
 
-    def getMinPrice(self, date):
+    def getMinPrice(self, date, previousDay=0):
         return self.data["MinPrice"][date]
 
-    def getClosePrice(self, date):
-        return self.data["ClosePrice"][date]
+    def getClosePrice(self, date, previousDay=0):
+        if not previousDay:
+            return self.data["ClosePrice"][date]
+        else:
+            idx = self.data.index.get_loc(date)
+            return self.data["ClosePrice"].iloc[idx-previousDay]  
 
-    def getPriceChange(self, date):
+    def getPriceChange(self, date, previousDay=0):
         return self.data["PriceChange"][date]
 
-    def getNumberOfTransactions(self, date):
+    def getNumberOfTransactions(self, date, previousDay=0):
         return self.data["NumberOfTransactions"][date]
 
 

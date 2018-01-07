@@ -1,4 +1,5 @@
 from tsfw.config import CONFIG
+from tsfw.const import*
 import tsfw.baseFunction as bf
 import pandas as pd
 import os
@@ -97,7 +98,7 @@ class Portfolios():
         # min trade unit = 1000 in tw, round vol
         vol = round(vol/CONFIG.TradingPara.tradeUnit)*CONFIG.TradingPara.tradeUnit        
 
-        if self.__chkCanTrade(intent, date):
+        if self.stockData[stockNum].chkCanTrade(intent, date)==TRADE_ALLOWED:
             logger.log(logging.TRADE, str(stockNum) + ": " + date + " " + intent + " " + str(abs(vol)) + " at $" + str(price) + ", total $" + str(abs(price*vol)))
             self.__append(stockNum, date, intent, price, vol, remarks)
 
@@ -107,30 +108,6 @@ class Portfolios():
 
         else:
             return False
-
-    def __chkCanTrade(self, intent, date):
-        # check 7% or 10% by date ++
-        # TW stock max increase/decrease  7% before 2015/6/1
-        # TW stock max increase/decrease 10% after  2015/6/1
-
-
-        ret=False
-        if intent=="buy":
-            #++
-            ret=True
-        elif intent=="bearishBuy":
-            #++
-            if bool(CONFIG.TradingPara.canBearish):
-                ret=True
-        elif intent=="sell":
-            #++
-            ret=True
-        elif intent=="bearishSell":
-            #++
-            if bool(CONFIG.TradingPara.canBearish):
-                ret=True
-
-        return ret
 
     def __tradingLoss(self, intent, vol, price):
         tradeMoney = vol*price

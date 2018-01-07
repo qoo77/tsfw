@@ -2,6 +2,7 @@ import tsfw.config as config
 config.init()
 CONFIG = config.CONFIG
 
+from tsfw.const import*
 from tsfw.portfolios import Portfolios as Portfolios
 from tsfw.plot import Plot as Plot
 from tsfw.stockData import StockData as StockData

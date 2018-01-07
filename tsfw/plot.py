@@ -1,4 +1,5 @@
 from tsfw.config import CONFIG
+from tsfw.const import*
 import tsfw.baseFunction as bf
 import plotly as py
 import plotly.graph_objs as go
