@@ -100,7 +100,7 @@ class Tsfw():
     def loadStockData(self, stockNum, startDate=None, endDate=None, readAll=False):
         
         if self.algorithm==None:
-            logger.log(logging.WARNING, "No algorithm loaded")
+            logger.warning("No algorithm loaded")
             return
 
         if readAll==True:
@@ -112,7 +112,7 @@ class Tsfw():
             
         for stockNum in stockNums:
             if stockNum not in self.stockData:
-                logger.info("Load Stock Data: " + str(stockNum))
+                logger.info("Load Stock Data: " + str(stockNum) + ", data range= " + str(startDate) + " ~ " + str(endDate))
                 stockData = StockData(stockNum, startDate, endDate)
 
                 self.algorithm.splitData(stockData)

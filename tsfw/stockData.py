@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 class StockData():
 
-    csvCol = ["Date", "Vol","TotalAmount","OpenPrice","MaxPrice","MinPrice","ClosePrice","PriceChange","NumberOfTransactions"]
+    csvCol = ["Date", "Vol", "TotalAmount", "OpenPrice", "MaxPrice", "MinPrice", "ClosePrice", "PriceChange", "NumberOfTransactions"]
 
     def __init__(self, stockNum, startDate=None, endDate=None):
         self.trainingDateRegion = lambda:0
@@ -39,6 +39,7 @@ class StockData():
     def __loadDataFromFile(self, stockNum):
         try:
             logger.debug("Load File: " + CONFIG.Path.dataDir + "/" + str(stockNum) + ".csv")
+            logger.debug("Data Type: default")
             data = pd.read_csv(CONFIG.Path.dataDir + "/" + str(stockNum) + ".csv", na_values='--')
         except IOError:
             logger.error("Load File fail: " + CONFIG.Path.dataDir + "/" + str(stockNum) + ".csv")
@@ -46,7 +47,7 @@ class StockData():
 
         return data
 
-    def __loadData(self, stockNum, startDate, endDate):
+    def __loadData(self, stockNum, inputStartDate, inputEndDate):
 
         if CONFIG.StockData.dataSource == "TSEC":
             self.data = self.__loadDataFromFile_TSEC(stockNum)
@@ -59,24 +60,28 @@ class StockData():
         self.data = self.data[~self.data.index.duplicated(keep='last')]# drop same index rows
         self.data = self.data.dropna() # drop nan data
 
+        # Organize stock data and save back to original csv file
         if CONFIG.StockData.organizeAndOverwriteData == True:
             print(CONFIG.StockData.organizeAndOverwriteData)
             logger.debug("Save File: " + CONFIG.Path.dataDir + "/" + str(stockNum) + ".csv")
-            logger.debug("Save File:GGGG")
-            logger.debug("Save File:GGGG")
-            logger.debug("Save File:GGGG")
             self.data.to_csv("data/" + str(stockNum) + ".csv", index_label=False, mode='w') # write back sorted data to csv
 
         dateMin = self.data.index.min()
         dateMax = self.data.index.max()
 
-        if startDate!=None and startDate>dateMin:
+        if inputStartDate!=None and inputStartDate<dateMin:
+            logger.warning("Input start date out of range, file start date=" + dateMin + ", input start date=" + inputStartDate)
             self.data = self.data.loc[dateMin:]
-            dateMin = startDate
+        elif inputStartDate!=None:
+            self.data = self.data.loc[inputStartDate:]
+            dateMin = inputStartDate
 
-        if endDate!=None and endDate<dateMax:
+        if inputEndDate!=None and inputEndDate>dateMax:
+            logger.warning("Input end date out of range, file end date=" + dateMax + ", input end date=" + inputEndDate)
             self.data = self.data.loc[:dateMax]
-            dateMax = endDate
+        elif inputStartDate!=None:
+            self.data = self.data.loc[:inputEndDate]
+            dateMax = inputEndDate
 
         self.trainingDateRegion.min = dateMin
         self.trainingDateRegion.max = dateMax
@@ -107,8 +112,8 @@ class StockData():
             self.testingData.drop(self.testingData.index[0])
             self.testingDateRegion.min=a.index.tolist()[0]
 
-        logger.debug("Training Data Date: " + str(self.trainingDateRegion.min) + " ~ " + str(self.trainingDateRegion.max))
-        logger.debug("Testing Data Date: " + str(self.testingDateRegion.min) + " ~ " + str(self.testingDateRegion.max))
+        logger.info("Training Data Date: " + str(self.trainingDateRegion.min) + " ~ " + str(self.trainingDateRegion.max))
+        logger.info("Testing Data Date: " + str(self.testingDateRegion.min) + " ~ " + str(self.testingDateRegion.max))
 
 
     # basic
