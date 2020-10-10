@@ -1,21 +1,22 @@
 import sys
-from tsfw.tsfw import Tsfw as Tsfw
+from tsfw.tsfw import Tsfw
 
 
 def main():     
 
-    tsfw = Tsfw()
-    tsfw.loadAlgorithm("BBANDS")
+    tsfw = Tsfw("test build")
+    tsfw.setAlgorithm("algorithm_a")
 
-    #tsfw.loadStockData(None, readAll=True)
-    #tsfw.loadStockData("2414")
-    tsfw.loadStockData("2414", startDate="2001-03-01", endDate="2001-07-02")
+    tsfw.setDataSource("yahooFinance")
+    tsfw.loadStockData(["AAPL", "TSLA"], startDate="2020-06-01", endDate="2020-10-02")
 
     tsfw.training()
     tsfw.testing()
     tsfw.saveResult()
+
     #tsfw.reset()
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    main()
+    

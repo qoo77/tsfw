@@ -1,12 +1,23 @@
+from enum import Enum
 
-TRADE_ALLOWED = 0
-TRADE_REACH_MAX_INCREASE_BUY = 1
-TRADE_REACH_MAX_DECREASE_BUY = 2
-TRADE_REACH_MAX_INCREASE_BEARISHBUY = 3
-TRADE_REACH_MAX_DECREASE_BEARISHBUY = 4
-TRADE_NO_BEARISHBUY = 5
-TRADE_REACH_MAX_INCREASE_SELL = 6
-TRADE_REACH_MAX_DECREASE_SELl = 7
-TRADE_REACH_MAX_INCREASE_BEARISHSELL = 8
-TRADE_REACH_MAX_DECREASE_BEARISHSELL = 9
-TRADE_NO_BEARISHSELL = 10
+class CustomEnum(Enum):
+    def __repr__(self):
+        return "%s.%s" % (
+            self.__class__.__name__, self._name_)
+    
+    def __str__(self):
+         return self.name
+
+class TRADE(CustomEnum):
+    BUY = 0
+    SELL = 1
+    BUYTOCOVER = 2 
+    SELLSHORT = 3
+
+class PRICE(CustomEnum):
+    OPEN = 0
+    HIGH = 1
+    LOW = 2
+    CLOSE = 3
+    ADJCLOSE = 4
+    VOLUME = 5

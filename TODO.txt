@@ -1,9 +1,0 @@
-Hi priority
-1. Add github doc
-2. fix/verify bearishBuy and bearishSell trade flow
-
-
-Low priority
-1. training architecture
-2. review project architecture
-3. double check stock dataframe type
