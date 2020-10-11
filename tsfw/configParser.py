@@ -5,8 +5,7 @@ import configparser
 from collections import namedtuple
 
 def init(configName):
-    gConfig = __loadConfig(configName)
-    return gConfig
+    return __loadConfig(configName)
 
 def __dict2Tuple(d):
     top = type('new', (object,), d)
@@ -33,7 +32,7 @@ def __loadConfig(configName):
 
     configuration = config._sections
 
-    # transform data tyoe in config
+    # transform data type in config
     for section in configuration.keys():
         for key in configuration[section]:
             # Transform string "yes" "true" to boolean True
@@ -68,7 +67,7 @@ def __createDefaultConfig():
     # todo: write default ini file
     """
     sample:
-    with open('example.ini', 'w') as configfile:
+    with open('config.ini', 'w') as configfile:
     config.write(configfile)
     """
     pass
