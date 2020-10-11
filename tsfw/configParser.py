@@ -33,20 +33,38 @@ def __loadConfig(configName):
 
     configuration = config._sections
 
-    # Transform string "yes" "true" to boolean True
+    # transform data tyoe in config
     for section in configuration.keys():
         for key in configuration[section]:
+            # Transform string "yes" "true" to boolean True
             if configuration[section][key].lower() in ("yes", "true"):
                 configuration[section][key] = True
+            # Transform string "no" "false to bolean false"
             elif configuration[section][key] in ("no", "false"):
                 configuration[section][key] = False
+            # Transform string to int
+            elif __isInt(configuration[section][key]):
+                configuration[section][key] = int(configuration[section][key])
+            # Transform string to float
+            elif __isFloat(configuration[section][key]):
+                configuration[section][key] = float(configuration[section][key])
 
     # Transform dict to tuple
     configuration = __dict2Tuple(configuration)
 
     return configuration
 
-def __genDefaultConfig():
+def __isFloat(str):
+    try:
+        float(str)
+        return True
+    except ValueError:
+        return False
+
+def __isInt(str):
+    return str.isnumeric()
+
+def __createDefaultConfig():
     # todo: write default ini file
     """
     sample:

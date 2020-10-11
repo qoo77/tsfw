@@ -43,7 +43,7 @@ class Tsfw():
         logLevel = [logging.DEBUG, logging.TRADE, logging.INFO, 
                     logging.WARNING, logging.ERROR, logging.CRITICAL]
 
-        cmdLineLogLv = logLevel[int(gConfig.LogLevel.commandline)]
+        cmdLineLogLv = logLevel[gConfig.LogLevel.commandline]
 
         logging.basicConfig(stream=sys.stdout, 
                             level=cmdLineLogLv,
@@ -85,24 +85,6 @@ class Tsfw():
             self.tradeRecorder.initStock(stock)
             # init performance history performanceRecords
             self.performanceRecorder.initStock(stock)
-            
-
-    def delStockData(self, stockNum, delAll=False):
-        # todo
-        raise NotImplementedError("Not implement")      
-
-
-    def training(self):
-        logger.info("Training start")
-        # todo
-        logger.info("Training end")
-
-
-    def testing(self):
-        logger.info("Testing start")
-        # todo
-        logger.info("Testing end")
-
 
     def saveResult(self):
         logger.info("Save Result")
@@ -110,6 +92,7 @@ class Tsfw():
 
     def reset(self):
         logger.warning("Reset tsfw module")
+        # todo: need review
         dic = vars(self)
         for key in dic.keys():
             dic[key] = None

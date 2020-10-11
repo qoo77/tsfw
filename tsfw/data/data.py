@@ -7,7 +7,7 @@ from .. import const
 
 class Data(object):
     def __init__(self):
-        logger.info("Init data ")
+        logger.info("Init data")
         self.parser = None
         # todo
     def setDataSource(self, fileName):
@@ -25,8 +25,8 @@ class Data(object):
 
     def __asignDataProxy(self):
         
-        self.getPrice = self.dataProxy.getPrice
         self.loadStockPrice = self.dataProxy.loadStockData
+        self.getPrice = self.dataProxy.getPrice
 
 
 if __name__ == '__main__':

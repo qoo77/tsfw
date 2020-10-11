@@ -7,7 +7,7 @@ from .cash import Cash
 from .stock import Stock
 
 class Balance():
-    def __init__(self, cashAmount = int(gConfig.Positions.initialfund), currency = gConfig.Positions.currency):
+    def __init__(self, cashAmount = gConfig.Positions.initialfund, currency = gConfig.Positions.currency):
         logger.info("Init " + self.__class__.__name__)
         self.cash = Cash(cashAmount, currency)
         self.stock = dict()
